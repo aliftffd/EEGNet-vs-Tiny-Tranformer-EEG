@@ -1,6 +1,6 @@
 """
 Training Pipeline for EEG-based Motor Imagery BCI
-Supports both pre-training and transfer learning workflows
+Supports both pre-training and transfer learning workflows for EEGNet and EEGTransformer
 """
 
 import torch
@@ -17,8 +17,52 @@ from tqdm import tqdm
 import json
 import optuna
 
-from model import EEGNet, EEGNetTransfer, count_parameters
+from model import EEGNet, EEGNetTransfer
+from models.eeg_transformer import EEGTransformer
 from dataset import BCIDataProcessor, get_single_subject_data
+
+def count_parameters(model):
+    """Count trainable parameters"""
+    return sum(p.numel() for p in model.parameters() if p.requires_grad)
+
+class EEGTransformerTransfer(nn.Module):
+    """
+    EEGTransformer with Transfer Learning support.
+    Allows freezing the encoder and training only the MLP head.
+    """
+    def __init__(self, pretrained_model, num_classes=2):
+        super(EEGTransformerTransfer, self).__init__()
+        self.feature_extractor = pretrained_model.encoder
+        self.mlp_head = nn.Linear(pretrained_model.d_model, num_classes)
+        
+        # Freeze feature extractor initially
+        self.freeze_features()
+
+    def freeze_features(self):
+        """Freeze all layers except the final classification layer"""
+        for param in self.feature_extractor.parameters():
+            param.requires_grad = False
+        # Ensure FC layer is trainable
+        for param in self.mlp_head.parameters():
+            param.requires_grad = True
+
+    def unfreeze_features(self):
+        """Unfreeze all layers for fine-tuning"""
+        for param in self.feature_extractor.parameters():
+            param.requires_grad = True
+
+    def forward(self, x):
+        # Use the encoder's forward pass
+        enc_output = self.feature_extractor(x)
+        
+        # Extract CLS token
+        if self.feature_extractor.use_cls_token:
+            cls_output = enc_output[:, 0]
+        else:
+            cls_output = enc_output.mean(dim=1)
+            
+        logits = self.mlp_head(cls_output)
+        return logits
 
 
 class BCITrainer:
@@ -322,23 +366,23 @@ class BCITrainer:
         return val_acc, cm
 
 
-def pretrain_model(data_path='./data', save_dir='./pretrained', epochs=100, use_best_params=False):
+def pretrain_model(data_path='./data', save_dir='./pretrained', epochs=100, use_best_params=False, model_type='eegnet'):
     """
-    Pre-train EEGNet on all subjects (subject-independent)
+    Pre-train a model on all subjects (subject-independent)
     """
     print("\n" + "=" * 70)
-    print("STAGE 1: PRE-TRAINING ON MULTI-SUBJECT DATA")
+    print(f"STAGE 1: PRE-TRAINING {model_type.upper()} ON MULTI-SUBJECT DATA")
     print("=" * 70)
     
     # Hyperparameters
     if use_best_params:
-        best_params_path = './best_params.json'
+        best_params_path = f'./best_params_{model_type}.json'
         if os.path.exists(best_params_path):
             with open(best_params_path, 'r') as f:
                 params = json.load(f)
-            print("✓ Using best hyperparameters from Optuna.")
+            print(f"✓ Using best hyperparameters from {best_params_path}.")
         else:
-            print("⚠ Best parameters file not found. Using default hyperparameters.")
+            print(f"⚠ Best parameters file not found for {model_type}. Using default hyperparameters.")
             params = {'learning_rate': 0.001, 'weight_decay': 0.01, 'dropout_rate': 0.5}
     else:
         params = {'learning_rate': 0.001, 'weight_decay': 0.01, 'dropout_rate': 0.5}
@@ -346,7 +390,8 @@ def pretrain_model(data_path='./data', save_dir='./pretrained', epochs=100, use_
     # Load multi-subject data
     processor = BCIDataProcessor(
         data_path=data_path,
-        subjects=[1, 2, 3, 4, 5, 6, 7, 8, 9]
+        subjects=list(range(1, 10)),
+        model_type=model_type
     )
     processor.download_data()
     
@@ -357,15 +402,30 @@ def pretrain_model(data_path='./data', save_dir='./pretrained', epochs=100, use_
     
     # Create model
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    model = EEGNet(
-        num_classes=2,
-        channels=3,
-        samples=500,
-        dropout_rate=params['dropout_rate']
-    )
-    
+    if model_type == 'eegnet':
+        model = EEGNet(
+            num_classes=2,
+            channels=3,
+            samples=500,
+            dropout_rate=params.get('dropout_rate', 0.5)
+        )
+    elif model_type == 'transformer':
+        model = EEGTransformer(
+            num_classes=2,
+            in_channels=3,
+            seq_length=500,
+            d_model=params.get('d_model', 128),
+            n_head=params.get('n_head', 8),
+            n_layers=params.get('n_layers', 6),
+            ffn_hidden=params.get('ffn_hidden', 256),
+            drop_prob=params.get('drop_prob', 0.1),
+            device=device
+        )
+    else:
+        raise ValueError(f"Unknown model_type: {model_type}")
+
     # Train
-    trainer = BCITrainer(model, device=device, learning_rate=params['learning_rate'], weight_decay=params['weight_decay'])
+    trainer = BCITrainer(model, device=device, learning_rate=params['learning_rate'], weight_decay=params.get('weight_decay', 0.01))
     best_acc = trainer.train(
         train_loader, val_loader, 
         epochs=epochs, 
@@ -382,16 +442,16 @@ def pretrain_model(data_path='./data', save_dir='./pretrained', epochs=100, use_
     return trainer.model
 
 
-def finetune_model(pretrained_path, subject_id, data_path='./data', save_dir='./finetuned', epochs=50):
+def finetune_model(pretrained_path, subject_id, data_path='./data', save_dir='./finetuned', epochs=50, model_type='eegnet'):
     """
     Fine-tune pre-trained model on single subject data (transfer learning)
     """
     print("\n" + "=" * 70)
-    print(f"STAGE 2: FINE-TUNING ON SUBJECT {subject_id}")
+    print(f"STAGE 2: FINE-TUNING {model_type.upper()} ON SUBJECT {subject_id}")
     print("=" * 70)
     
     # Load single subject data
-    X_train, y_train, X_val, y_val = get_single_subject_data(subject_id, data_path)
+    X_train, y_train, X_val, y_val = get_single_subject_data(subject_id, data_path, model_type=model_type)
     
     processor = BCIDataProcessor(data_path=data_path)
     train_loader, val_loader = processor.create_dataloaders(
@@ -400,34 +460,34 @@ def finetune_model(pretrained_path, subject_id, data_path='./data', save_dir='./
     
     # Load pre-trained model
     device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    pretrained_model = EEGNet(num_classes=2, channels=3, samples=500)
-    checkpoint = torch.load(pretrained_path, map_location=device)
-    pretrained_model.load_state_dict(checkpoint['model_state_dict'])
-    
+    if model_type == 'eegnet':
+        pretrained_model = EEGNet(num_classes=2, channels=3, samples=500)
+        checkpoint = torch.load(pretrained_path, map_location=device)
+        pretrained_model.load_state_dict(checkpoint['model_state_dict'])
+        transfer_model = EEGNetTransfer(pretrained_model, num_classes=2)
+    elif model_type == 'transformer':
+        # For transformer, we need to know its architecture to load it
+        # This assumes default params for loading, or saved params
+        pretrained_model = EEGTransformer(
+            num_classes=2, in_channels=3, seq_length=500, device=device,
+            d_model=128, n_head=8, n_layers=6, ffn_hidden=256, drop_prob=0.1
+        )
+        checkpoint = torch.load(pretrained_path, map_location=device)
+        pretrained_model.load_state_dict(checkpoint['model_state_dict'])
+        transfer_model = EEGTransformerTransfer(pretrained_model, num_classes=2)
+    else:
+        raise ValueError(f"Unknown model_type: {model_type}")
+
     print(f"✓ Loaded pre-trained model from: {pretrained_path}")
     
-    # Create transfer learning model
-    transfer_model = EEGNetTransfer(pretrained_model, num_classes=2)
-    
-    # Strategy 1: Freeze features, train only classifier (fast adaptation)
-    print("\n--- Phase 1: Training classifier only ---")
-    transfer_model.freeze_features()
-    trainer = BCITrainer(transfer_model, device=device, learning_rate=0.01)
-    trainer.train(
-        train_loader, val_loader,
-        epochs=20,
-        save_dir=os.path.join(save_dir, 'phase1'),
-        early_stopping_patience=10
-    )
-    
-    # Strategy 2: Unfreeze last layer, fine-tune (better performance)
-    print("\n--- Phase 2: Fine-tuning last layer ---")
-    transfer_model.unfreeze_last_n_layers(n=1)
-    trainer.optimizer = optim.Adam(transfer_model.parameters(), lr=0.001)
+    # Fine-tuning strategy
+    print("\n--- Fine-tuning model ---")
+    transfer_model.unfreeze_features() # Unfreeze all layers for simplicity
+    trainer = BCITrainer(transfer_model, device=device, learning_rate=0.0001, weight_decay=0.01)
     best_acc = trainer.train(
         train_loader, val_loader,
-        epochs=30,
-        save_dir=os.path.join(save_dir, 'phase2'),
+        epochs=epochs,
+        save_dir=save_dir,
         early_stopping_patience=15
     )
     
@@ -435,7 +495,7 @@ def finetune_model(pretrained_path, subject_id, data_path='./data', save_dir='./
     trainer.evaluate_and_plot(val_loader, save_dir=save_dir)
     
     print(f"\n✓ Fine-tuning completed! Best accuracy: {best_acc:.2f}%")
-    print(f"✓ Model saved to: {save_dir}/phase2/best_model.pth")
+    print(f"✓ Model saved to: {save_dir}/best_model.pth")
     
     return best_acc
 
@@ -444,7 +504,9 @@ if __name__ == "__main__":
     import argparse
     from tabulate import tabulate
     
-    parser = argparse.ArgumentParser(description='Train EEGNet for BCI')
+    parser = argparse.ArgumentParser(description='Train EEG Models for BCI')
+    parser.add_argument('--model_type', type=str, choices=['eegnet', 'transformer'], 
+                        default='eegnet', help='Model to train')
     parser.add_argument('--mode', type=str, choices=['pretrain', 'finetune', 'both'], 
                        default='both', help='Training mode')
     parser.add_argument('--data_path', type=str, default='./data', 
@@ -461,16 +523,17 @@ if __name__ == "__main__":
     args = parser.parse_args()
     
     if args.mode == 'pretrain' or args.mode == 'both':
-        # Pre-train on all subjects
+        save_dir = f'./pretrained_{args.model_type}'
         pretrained_model = pretrain_model(
             data_path=args.data_path,
-            save_dir='./pretrained',
+            save_dir=save_dir,
             epochs=args.epochs,
-            use_best_params=args.use_best_params
+            use_best_params=args.use_best_params,
+            model_type=args.model_type
         )
     
     if args.mode == 'finetune' or args.mode == 'both':
-        pretrained_path = './pretrained/best_model.pth'
+        pretrained_path = f'./pretrained_{args.model_type}/best_model.pth'
         if not os.path.exists(pretrained_path):
             print(f"Pretrained model not found at {pretrained_path}. Please run in 'pretrain' or 'both' mode first.")
         else:
@@ -481,8 +544,9 @@ if __name__ == "__main__":
                         pretrained_path=pretrained_path,
                         subject_id=subject_id,
                         data_path=args.data_path,
-                        save_dir=f'./finetuned_models/finetuned_subject{subject_id}',
-                        epochs=50
+                        save_dir=f'./finetuned_models/finetuned_subject{subject_id}_{args.model_type}',
+                        epochs=50,
+                        model_type=args.model_type
                     )
                     results.append({'subject': subject_id, 'accuracy': best_acc})
             else:
@@ -490,14 +554,15 @@ if __name__ == "__main__":
                     pretrained_path=pretrained_path,
                     subject_id=args.subject,
                     data_path=args.data_path,
-                    save_dir=f'./finetuned_models/finetuned_subject{args.subject}',
-                    epochs=50
+                    save_dir=f'./finetuned_models/finetuned_subject{args.subject}_{args.model_type}',
+                    epochs=50,
+                    model_type=args.model_type
                 )
                 results.append({'subject': args.subject, 'accuracy': best_acc})
             
             if results:
                 print("\n" + "=" * 70)
-                print("FINE-TUNING RESULTS SUMMARY")
+                print(f"FINE-TUNING RESULTS SUMMARY ({args.model_type.upper()})")
                 print("=" * 70)
                 headers = ["Subject", "Best Accuracy"]
                 rows = [[res['subject'], f"{res['accuracy']:.2f}%"] for res in results]

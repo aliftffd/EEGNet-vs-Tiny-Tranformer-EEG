@@ -54,7 +54,8 @@ class BCIDataProcessor:
                  freq_band=(8, 30),
                  epoch_duration=2.0,
                  epoch_offset=0.5,
-                 sfreq=250):
+                 sfreq=250,
+                 model_type='eegnet'):
         """
         Args:
             data_path: where to store/load data
@@ -64,6 +65,7 @@ class BCIDataProcessor:
             epoch_duration: length of epoch in seconds
             epoch_offset: offset after cue in seconds
             sfreq: sampling frequency (250 Hz for BCI Competition IV 2a)
+            model_type: 'eegnet' or 'transformer'. Controls data shape.
         """
         self.data_path = data_path
         self.subjects = subjects
@@ -72,6 +74,7 @@ class BCIDataProcessor:
         self.epoch_duration = epoch_duration
         self.epoch_offset = epoch_offset
         self.sfreq = sfreq
+        self.model_type = model_type
         
         os.makedirs(data_path, exist_ok=True)
         
@@ -261,45 +264,60 @@ class BCIDataProcessor:
         """
         all_data = []
         all_labels = []
-        
+
         for subject_id in self.subjects:
             # Load training session
             data, labels = self.process_single_subject(subject_id, session='T')
-            
+
             if data is not None:
                 # For 2-class: keep only Left (0) and Right (1)
                 if num_classes == 2:
                     mask = (labels == 0) | (labels == 1)
                     data = data[mask]
                     labels = labels[mask]
-                
+
                 all_data.append(data)
                 all_labels.append(labels)
-        
+
         if len(all_data) == 0:
             raise ValueError("No data loaded! Please download dataset first.")
-        
+
         # Concatenate all subjects
         X = np.concatenate(all_data, axis=0)
         y = np.concatenate(all_labels, axis=0)
-        
-        # Add channel dimension for EEGNet (expects 1 "kernel" dimension)
-        # Shape: (trials, 1, channels, timepoints)
-        X = np.expand_dims(X, axis=1)
-        
+
+        # CRITICAL FIX: Standardize the data
+        # EEG data after filtering has very small values, need to normalize
+        # Compute mean and std across all samples for each channel
+        X_mean = X.mean(axis=(0, 2), keepdims=True)  # Mean across trials and time
+        X_std = X.std(axis=(0, 2), keepdims=True)    # Std across trials and time
+        X = (X - X_mean) / (X_std + 1e-8)  # Standardize
+
+        print(f"\nData normalization applied:")
+        print(f"  Mean per channel: {X_mean.squeeze()}")
+        print(f"  Std per channel: {X_std.squeeze()}")
+        print(f"  Normalized data - Mean: {X.mean():.6f}, Std: {X.std():.6f}")
+
+        # Shape data based on model type
+        if self.model_type == 'eegnet':
+            # Add channel dimension for EEGNet (expects 1 "kernel" dimension)
+            # Shape: (trials, 1, channels, timepoints)
+            X = np.expand_dims(X, axis=1)
+        # For 'transformer', shape is already (trials, channels, timepoints)
+
         print("\n" + "=" * 60)
         print("DATASET SUMMARY")
         print("=" * 60)
         print(f"Total trials: {len(y)}")
-        print(f"Data shape: {X.shape}")
+        print(f"Data shape: {X.shape} (for model_type='{self.model_type}')")
         print(f"Class distribution: {np.bincount(y)}")
         print("=" * 60)
-        
+
         # Train/validation split (80/20)
         X_train, X_val, y_train, y_val = train_test_split(
             X, y, test_size=0.2, random_state=42, stratify=y
         )
-        
+
         return X_train, y_train, X_val, y_val
     
     def create_dataloaders(self, X_train, y_train, X_val, y_val, batch_size=64):
@@ -328,13 +346,14 @@ class BCIDataProcessor:
         return train_loader, val_loader
 
 
-def get_single_subject_data(subject_id, data_path='./data'):
+def get_single_subject_data(subject_id, data_path='./data', model_type='eegnet'):
     """
     Helper function to get data for a single subject (for fine-tuning)
     """
     processor = BCIDataProcessor(
         data_path=data_path,
-        subjects=[subject_id]
+        subjects=[subject_id],
+        model_type=model_type
     )
     
     X_train, y_train, X_val, y_val = processor.load_and_preprocess(num_classes=2)
