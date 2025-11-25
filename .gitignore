@@ -1,3 +1,73 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# Model checkpoints and weights
+*.pth
+*.pt
+*.ckpt
+*.h5
+*.pkl
+*.pickle
+
+# Training outputs
+checkpoints/
+pretrained/
+pretrained_*/
+finetuned_models/
+tuning_trials/
+models/saved/
+*.log
+
 # Data files
 data/
-finetuned_models/
+*.gdf
+*.mat
+*.csv
+*.npy
+*.npz
+
+# Results and plots
+results/
+*.png
+*.jpg
+*.jpeg
+*.pdf
+plots/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Project specific
+OPTUNA_DASHBOARD_GUIDE.md
+launch_dashboard.sh
+diagnose_50_accuracy.py
+quick_train_test.py
+sanity_check.py
+test_multi_subject.py
+test_transformer.py
