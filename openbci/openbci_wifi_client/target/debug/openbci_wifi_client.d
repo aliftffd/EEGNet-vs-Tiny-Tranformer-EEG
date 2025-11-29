@@ -1,0 +1,1 @@
+/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client/target/debug/openbci_wifi_client: /home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client/src/lib.rs /home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client/src/main.rs

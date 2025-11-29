@@ -249,6 +249,15 @@ class BCIDataProcessor:
         data = epochs.get_data()  # (n_epochs, n_channels, n_times)
         labels = epochs.events[:, -1]  # Event labels
         
+        # For transformers, pad sequence to be divisible by segment size (e.g. 64)
+        if self.model_type == 'transformer':
+            target_len = 512  # Pad to 512 (8 * 64)
+            current_len = data.shape[2]
+            
+            if current_len < target_len:
+                pad_width = ((0, 0), (0, 0), (0, target_len - current_len))
+                data = np.pad(data, pad_width, mode='constant', constant_values=0)
+
         print(f"  → Extracted {len(labels)} epochs")
         print(f"  → Shape: {data.shape}")
         

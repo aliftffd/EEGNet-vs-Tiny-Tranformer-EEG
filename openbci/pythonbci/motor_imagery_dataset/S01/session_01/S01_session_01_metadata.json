@@ -1,0 +1,57 @@
+{
+  "subject_name": "S01",
+  "session_id": "session_01",
+  "start_time": "2025-11-29T12:45:17.028419",
+  "end_time": "2025-11-29T12:47:46.301555",
+  "total_trials": 3,
+  "total_samples": 13035,
+  "sample_rate": 250,
+  "electrode_config": {
+    "channels": [
+      "C3_left_motor",
+      "C4_right_motor",
+      "Cz_reference",
+      "F3_frontal",
+      "F4_frontal",
+      "P3_parietal",
+      "P4_parietal",
+      "O1_occipital"
+    ],
+    "reference": "Cz (SRB pin)",
+    "ground": "Fpz (BIAS pin)"
+  },
+  "class_distribution": {
+    "left_hand": 1,
+    "both_hands": 1,
+    "feet": 1
+  },
+  "trials": [
+    {
+      "timestamp": "2025-11-29T12:46:13.805198",
+      "label": "left_hand",
+      "class_id": 0,
+      "num_samples": 4930,
+      "duration": 5.000079870223999,
+      "quality_score": 1.0,
+      "filename": "S01_left_hand_trial_001_20251129_124613.csv"
+    },
+    {
+      "timestamp": "2025-11-29T12:46:42.555229",
+      "label": "both_hands",
+      "class_id": 2,
+      "num_samples": 4222,
+      "duration": 5.00007438659668,
+      "quality_score": 1.0,
+      "filename": "S01_both_hands_trial_002_20251129_124642.csv"
+    },
+    {
+      "timestamp": "2025-11-29T12:47:31.753999",
+      "label": "feet",
+      "class_id": 3,
+      "num_samples": 3883,
+      "duration": 5.0000810623168945,
+      "quality_score": 1.0,
+      "filename": "S01_feet_trial_003_20251129_124731.csv"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_data_collector/target/release/openbci_data_collector: /home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_data_collector/src/main.rs

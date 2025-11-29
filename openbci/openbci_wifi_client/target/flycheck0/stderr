@@ -1,0 +1,50 @@
+   0.114094421s  INFO prepare_target{force=false package_id=openbci_wifi_client v0.1.0 (/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client) target="openbci_wifi_client"}: cargo::core::compiler::fingerprint: stale: changed "/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client/src/main.rs"
+   0.114107376s  INFO prepare_target{force=false package_id=openbci_wifi_client v0.1.0 (/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client) target="openbci_wifi_client"}: cargo::core::compiler::fingerprint:           (vs) "/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client/target/debug/.fingerprint/openbci_wifi_client-82f09ee6de5256de/dep-bin-openbci_wifi_client"
+   0.114110422s  INFO prepare_target{force=false package_id=openbci_wifi_client v0.1.0 (/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client) target="openbci_wifi_client"}: cargo::core::compiler::fingerprint:                FileTime { seconds: 1764310535, nanos: 511968671 } < FileTime { seconds: 1764310711, nanos: 137203185 }
+   0.114146741s  INFO prepare_target{force=false package_id=openbci_wifi_client v0.1.0 (/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client) target="openbci_wifi_client"}: cargo::core::compiler::fingerprint: fingerprint dirty for openbci_wifi_client v0.1.0 (/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client)/Check { test: false }/TargetInner { name: "openbci_wifi_client", doc: true, ..: with_path("/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client/src/main.rs", Edition2021) }
+   0.114154626s  INFO prepare_target{force=false package_id=openbci_wifi_client v0.1.0 (/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client) target="openbci_wifi_client"}: cargo::core::compiler::fingerprint:     dirty: FsStatusOutdated(StaleItem(ChangedFile { reference: "/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client/target/debug/.fingerprint/openbci_wifi_client-82f09ee6de5256de/dep-bin-openbci_wifi_client", reference_mtime: FileTime { seconds: 1764310535, nanos: 511968671 }, stale: "/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client/src/main.rs", stale_mtime: FileTime { seconds: 1764310711, nanos: 137203185 } }))
+   0.114534369s  INFO prepare_target{force=false package_id=openbci_wifi_client v0.1.0 (/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client) target="openbci_wifi_client"}: cargo::core::compiler::fingerprint: fingerprint error for openbci_wifi_client v0.1.0 (/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client)/Check { test: true }/TargetInner { name: "openbci_wifi_client", doc: true, ..: with_path("/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client/src/main.rs", Edition2021) }
+   0.114540530s  INFO prepare_target{force=false package_id=openbci_wifi_client v0.1.0 (/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client) target="openbci_wifi_client"}: cargo::core::compiler::fingerprint:     err: failed to read `/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client/target/debug/.fingerprint/openbci_wifi_client-4dae37e9b767751a/test-bin-openbci_wifi_client`
+
+Caused by:
+    No such file or directory (os error 2)
+
+Stack backtrace:
+   0: cargo_util::paths::read_bytes
+   1: cargo_util::paths::read
+   2: cargo::core::compiler::fingerprint::_compare_old_fingerprint
+   3: cargo::core::compiler::fingerprint::prepare_target
+   4: cargo::core::compiler::compile
+   5: <cargo::core::compiler::build_runner::BuildRunner>::compile
+   6: cargo::ops::cargo_compile::compile_ws
+   7: cargo::ops::cargo_compile::compile_with_exec
+   8: cargo::ops::cargo_compile::compile
+   9: cargo::commands::check::exec
+  10: <cargo::cli::Exec>::exec
+  11: cargo::main
+  12: std::sys::backtrace::__rust_begin_short_backtrace::<fn(), ()>
+  13: std::rt::lang_start::<()>::{closure#0}
+  14: core::ops::function::impls::<impl core::ops::function::FnOnce<A> for &F>::call_once
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/core/src/ops/function.rs:284:21
+  15: std::panicking::catch_unwind::do_call
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/panicking.rs:589:40
+  16: std::panicking::catch_unwind
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/panicking.rs:552:19
+  17: std::panic::catch_unwind
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/panic.rs:359:14
+  18: std::rt::lang_start_internal::{{closure}}
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/rt.rs:175:24
+  19: std::panicking::catch_unwind::do_call
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/panicking.rs:589:40
+  20: std::panicking::catch_unwind
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/panicking.rs:552:19
+  21: std::panic::catch_unwind
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/panic.rs:359:14
+  22: std::rt::lang_start_internal
+             at /rustc/29483883eed69d5fb4db01964cdf2af4d86e9cb2/library/std/src/rt.rs:171:5
+  23: main
+  24: <unknown>
+  25: __libc_start_main
+  26: <unknown>
+    Checking openbci_wifi_client v0.1.0 (/home/lipplopp/Documents/collage_master/PDalam/to_capstone/openbci/openbci_wifi_client)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.33s

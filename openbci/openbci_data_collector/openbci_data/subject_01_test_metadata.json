@@ -1,0 +1,17 @@
+{
+  "subject_id": "subject_01",
+  "session_name": "test",
+  "start_time": "2025-11-28T07:47:00.305143213Z",
+  "end_time": "2025-11-28T07:47:00.864580438Z",
+  "sample_rate": 250,
+  "num_channels": 2,
+  "total_samples": 0,
+  "electrode_config": {
+    "channels": [
+      "C3",
+      "C4"
+    ],
+    "reference": "Cz",
+    "ground": "Fpz"
+  }
+}

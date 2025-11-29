@@ -1,0 +1,21 @@
+{
+  "subject_id": "S01",
+  "session_id": "session_01",
+  "trial_number": 1,
+  "class_label": "left_hand",
+  "class_id": 0,
+  "start_time": "2025-11-28T08:08:36.483813916Z",
+  "end_time": "2025-11-28T08:09:37.084796172Z",
+  "sample_rate": 250,
+  "num_channels": 2,
+  "total_samples": 0,
+  "duration_seconds": 60,
+  "electrode_config": {
+    "channels": [
+      "C3_left_motor",
+      "C4_right_motor"
+    ],
+    "reference": "Cz",
+    "ground": "Fpz"
+  }
+}
