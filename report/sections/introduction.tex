@@ -1,0 +1,11 @@
+Brain–computer interfaces (BCIs) establish a direct communication pathway between the human brain and external devices without relying on the peripheral nervous system or muscular activity ~\cite{zhang2017hybrid,jeong2020brain,zhang2019strength}. Due to their non-invasiveness and prospective uses in neurofeedback training, assistive technology, and rehabilitation, motor imagery (MI) based systems have attracted a lot of attention among different BCI paradigms.  The mental simulation of movement without actual execution is known as motor imagery, and it produces patterns in electroencephalography (EEG) signals, especially in the sensorimotor cortical regions ~\cite{Motor2023}.
+The poor signal-to-noise ratio, non-stationarity, and substantial inter-subject variability of motor imagery EEG signals continue to make classification difficult.  End-to-end learning techniques that automatically extract discriminative features from raw or minimally preprocessed EEG data have been made possible by recent developments in deep learning.
+Across several BCI scenarios, EEGNet, a small convolutional neural network created especially for EEG signal classification, has proven to perform better ~\cite{lawhern2018eegnet}.  The design is appropriate for circumstances with limited training data that are typical in BCI research because it uses depthwise and separable convolutions to capture both temporal and spatial characteristics while retaining a small number of trainable parameters.
+
+This study addresses practical BCI challenges through three main contributions:
+\begin{itemize}
+  \item Integration of BCI Competition IV Dataset 2a ~\cite{brunner2008graz} with custom OpenBCI-collected data for cross-platform evaluation
+  \item Systematic hyperparameter optimization using Optuna framework~\cite{akiba2019optuna} for EEGNet architecture tuning
+  \item Three-class motor imagery classification using minimal three-channel EEG configuration
+\end{itemize}
+

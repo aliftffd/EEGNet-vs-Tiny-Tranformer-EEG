@@ -1,0 +1,52 @@
+\relax 
+\citation{zhang2017hybrid,jeong2020brain,zhang2019strength}
+\citation{Motor2023}
+\citation{lawhern2018eegnet}
+\citation{brunner2008graz}
+\citation{akiba2019optuna}
+\citation{brunner2008graz}
+\@writefile{toc}{\contentsline {section}{\numberline {I}Introduction}{1}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {II}Methodology}{1}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-A}}Dataset Description}{1}{}\protected@file@percent }
+\citation{lawhern2018eegnet}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-B}}Data Preprocessing}{2}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Preprocessing pipeline for motor imagery EEG signals. The pipeline includes bandpass filtering, notch filtering, temporal extraction, and per-channel-per-trial normalization, resulting in clean output with standardized shape (2,295 × 3 × 1,000).}}{2}{}\protected@file@percent }
+\newlabel{fig:preprocessing}{{1}{2}{}{figure.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {II-C}}EEGNEt Architecture}{2}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces EEGNet architecture for three-class motor imagery classification. The network processes input shape (3 × 1,000) through four blocks: temporal convolution, depthwise spatial convolution, separable convolution, and classification layer, resulting in total model size of 55 KB optimized through 50 Optuna trials}}{2}{}\protected@file@percent }
+\newlabel{fig:architecture}{{2}{2}{}{figure.2}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {III}Experimental Setup}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-A}}Hardware and Software Environtment}{2}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-B}}Dataset Description}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-C}}Hyperparameter Optimization Strategy}{3}{}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {I}{\ignorespaces Hyperparameter search space for Optuna optimization}}{3}{}\protected@file@percent }
+\newlabel{tab:hyperparams}{{I}{3}{}{table.1}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-D}}Training Configuration}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-E}}Model Selection and Evaluation}{3}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {III-F}}Performance Metrics}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {IV}Result and Discussion}{4}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-A}}Overall Classification Performance}{4}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Training and validation accuracy curves over 100 epochs. The model demonstrates stable convergence with minimal overfitting, achieving peak validation accuracy of 57.30\% at epoch 85. Training accuracy reaches 67.79\%, resulting in an overfitting gap of 10.49\%.}}{4}{}\protected@file@percent }
+\newlabel{fig:training_curves}{{3}{4}{}{figure.3}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-B}}Confusion Matrix Analysis}{4}{}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {4}{\ignorespaces Confusion matrix for three-class motor imagery classification on the validation set (459 trials). Diagonal elements represent correct classifications: Left Hand (76/153, 49.67\%), Right Hand (98/153, 64.05\%), Both Feet (85/153, 55.56\%). The matrix reveals asymmetric misclassification patterns, with Right Hand achieving the highest discrimination performance.}}{5}{}\protected@file@percent }
+\newlabel{fig:confusion_matrix}{{4}{5}{}{figure.4}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-C}}Misclassification Pattern Analysis}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-D}}Impact of Per-Channel-Per-Trial Normalization}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-E}}Comparison with Literature and Baseline Performance}{5}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-F}}Computational Efficiency and Deployment Considerations}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {IV-G}}Limitations and Sources of Variance}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {V}Conclusion}{6}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-A}}Conclusion}{6}{}\protected@file@percent }
+\bibstyle{IEEEtran}
+\bibdata{references}
+\bibcite{zhang2017hybrid}{1}
+\bibcite{jeong2020brain}{2}
+\bibcite{zhang2019strength}{3}
+\bibcite{Motor2023}{4}
+\bibcite{lawhern2018eegnet}{5}
+\bibcite{brunner2008graz}{6}
+\bibcite{akiba2019optuna}{7}
+\@writefile{toc}{\contentsline {subsection}{\numberline {\mbox  {V-B}}Future Work}{7}{}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{References}{7}{}\protected@file@percent }
+\gdef \@abspage@last{7}

@@ -1,0 +1,69 @@
+\subsection{Dataset Description}
+This study utilized a combined dataset comprising 2,295 motor imagery trials from two sources. The primary dataset consisted of 1,944 trials from the BCI Competition IV Dataset 2a ~\cite{brunner2008graz}, which includes recordings from 9 subjects performing four classes of motor imagery tasks. We selected three classes for this study: left hand, right hand, and feet motor imagery, excluding the tongue class to focus on limb-related movements.
+To evaluate model generalization across different recording hardware, we supplemented the benchmark data with 351 trials collected using OpenBCI Cyton board from three (S01: 216 trials, S04: 45 trials, S06: 90 trials). Both datasets used a consistent experimental protocol where subjects performed motor imagery tasks following visual cues, with each trial lasting approximately 7 seconds including a baseline period.
+
+A balanced class distribution was ensured by the final dataset's 765 trials per class (Left: 765, Right: 765, Feet: 765).  We concentrated on three central electrodes (C3, Cz, and C4) placed over the sensorimotor cortex, which are known to record neuronal activity associated to motor imagery. All recordings were made at a sampling rate of 250 Hz.
+
+\subsection{Data Preprocessing}
+The preprocessing pipeline, illustrated in Figure 1, consisted of four crititcal
+stages designed to enhance signal quality and normalize variability across
+subjects and recording sessions.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{figure/Untitled Diafdgram.jpg}
+  \caption{Preprocessing pipeline for motor imagery EEG signals. The pipeline includes bandpass filtering, notch filtering, temporal extraction, and per-channel-per-trial normalization, resulting in clean output with standardized shape (2,295 × 3 × 1,000).}
+  \label{fig:preprocessing}
+\end{figure}
+
+Based on figure \ref{fig:preprocessing} the input on the process is raw signals
+(2,295 Trial [C3,Cz,C4]) than the raw signal going to bandpass filter. three
+channels (C3,Cz,C4) were first subjected to a 5th-order Butterworth bandpass
+filter frequency with range 0.5-50 Hz. This step removes DC drift,
+high-frequency noise, and preserves the relevant frequency bands including mu
+(8-12 Hz) and beta (13-30 Hz) rhytms associated with motor imagery.
+
+The next stes is Notch Filtering. A notch filter centered at 50 Hz with quality
+factor Q=30 was applied to eliminate powerline interference. this IIR notch
+filter effectively removes the narrow 50 Hz. component while preserving adjacent
+frequencies, ensuring clean signals for subsequent analysis. Than move to
+temporal extraction step, on each trial was segmented to extract the 4-second
+motor imagery period (form 3.0 to 7.0 seconds post-cue), resulting in 1,000
+samples per trial at 250 Hz sampling rate. This window corresponds to the peak
+motor imagery phase, avoiding cue presentation artifacts and capturing
+consistent neural patterns across trials. 
+
+Normalization step, per-channel-per-trial z-score normalization was applide
+indipendently to each channel of each trial using the formula:
+\begin{equation*}
+    X' = \frac{X - \mu}{\sigma} + \epsilon
+\end{equation*}
+
+where $\mu$ and $\sigma$ represent the mean and standard deviation computed separately for each channel in each trial, and $\epsilon$ is a small constant for numerical stability. This normalization strategy proved crucial, yielding 57.30\% accuracy compared to only 33.42\% with global normalization. By preserving within-trial patterns while handling hardware differences between BCI Competition and OpenBCI data, this approach prevents scale mismatch and achieved a +23.88\% accuracy gain.
+
+The final preprocessed output had shape $(2{,}295 \times 3 \times 1{,}000)$ with zero mean and unit standard deviation, standardized range of approximately $-63$ to $+132$, ready for deep learning model training.
+
+\subsection{EEGNEt Architecture}
+
+We employed EEGNet ~\cite{lawhern2018eegnet}, a compact convolutional neural
+network spesifically designed for EEG-based BCIs. The completer architecture is
+shown in \ref{fig:architecture}, consisting of four sequential blocks with a
+total of 14,051 trainable parameter
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\columnwidth]{figure/architecture Dfix.jpg}
+  \caption{EEGNet architecture for three-class motor imagery classification. The network processes input shape (3 × 1,000) through four blocks: temporal convolution, depthwise spatial convolution, separable convolution, and classification layer, resulting in total model size of 55 KB optimized through 50 Optuna trials}
+  \label{fig:architecture}
+\end{figure}
+
+Block 2 employs a depthwise spatial convolution with depth multiplier $D=2$ and kernel size $(3 \times 1)$ to learn spatial filters independently for each temporal feature. This block generates 128 feature maps $(64 \times 2)$ and adds 640 parameters. Batch normalization, ELU activation, average pooling $(1 \times 4)$, and dropout (0.516) follow sequentially. The depthwise approach efficiently captures spatial patterns across C3-Cz-C4 electrodes while learning frequency-specific mu and beta band characteristics.
+
+Block 3 utilizes a separable convolution consisting of $F2=32$ pointwise filters $(1 \times 1$ kernel) followed by depthwise temporal convolution $(1 \times 16$ kernel) to refine feature representations. This block contributes 6,208 parameters and includes batch normalization, ELU activation, average pooling $(1 \times 8)$, and dropout (0.516). The separable design efficiently combines information across feature maps while capturing longer temporal dependencies, ultimately learning spatial patterns along the C3-Cz-C4 axis.
+
+Block 4 serves as the classification layer, flattening the 992 extracted features and feeding them through a fully connected layer with softmax activation to produce probability distributions over three classes (Left, Right, Feet). This classification head contains 2,979 parameters and performs efficient feature fusion for the final decision. The entire network maintains computational efficiency with only 55 KB model size, making it suitable for edge deployment. All hyperparameters including $F1$, $F2$, $D$, dropout rates, and architectural choices were systematically optimized through 50 Optuna trials, as detailed in Section 3.
+
+
+
+
+

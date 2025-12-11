@@ -1,0 +1,84 @@
+\subsection{Hardware and Software Environtment}
+All experiments were conducted on a workstation equipped with NVIDIA GeForce RTX 3050 Ti GPU with 4 GB VRAM, enabling accelerated training through CUDA parallel computing. The system utilized PyTorch 2.9.1 as the primary deep learning framework, with additional libraries including NumPy for numerical operations, MNE-Python for EEG signal processing, Scipy for filtering operations, and Optuna for hyperparameter optimization. All computations were performed in Python 3.12 environment managed through Conda.
+
+\subsection{Dataset Description}
+
+This study utilized a combined dataset comprising 2,295 motor imagery trials from two sources. The primary dataset consisted of 1,944 trials from the BCI Competition IV Dataset 2a [3], which includes recordings from 9 subjects performing four classes of motor imagery tasks. We selected three classes for this study: left hand, right hand, and feet motor imagery, excluding the tongue class to focus on limb-related movements.
+
+To evaluate model generalization across different recording hardware, we supplemented the benchmark data with custom-collected data using OpenBCI Cyton board, an open-source 8-channel biosensing platform. EEG data was collected from 6 subjects using the same experimental protocol as the BCI Competition dataset. However, after quality assessment and preprocessing validation, only 3 subjects (S01, S04, S06) were selected for inclusion in the final dataset, contributing 351 trials total: S01 with 216 trials (9.4\%), S04 with 45 trials (2.0\%), and S06 with 90 trials (3.9\%). The remaining 3 subjects were excluded due to [signal quality issues,high noise levels, and artifact contamination].\footnote{During data collection, some subjects did not follow the instructions given by the researcher. }
+
+Both datasets used a consistent experimental protocol where subjects performed motor imagery tasks following visual cues, with each trial lasting approximately 7 seconds including a baseline period. The final dataset contained 765 trials per class (Left: 765, Right: 765, Feet: 765), ensuring balanced class distribution. All recordings used a sampling rate of 250 Hz, and we focused on three central electrodes (C3, Cz, C4) positioned over the sensorimotor cortex, which are known to capture motor imagery-related neural activity.
+
+\subsection{Hyperparameter Optimization Strategy}
+Using Optuna, an advanced automated approach for hyperparameter optimization that makes use of the Tree-structured Parzen Estimator (TPE) algorithm.  Each of the 50 independent trials used in the optimization procedure trained a full EEGNet model with various hyperparameter setups.  While keeping an eye out for overfitting through the training-validation accuracy gap, the objective function optimized validation accuracy. 
+\begin{table}[htbp]
+\centering
+\caption{Hyperparameter search space for Optuna optimization}
+\label{tab:hyperparams}
+\begin{tabular}{lll}
+\hline
+\textbf{Parameter} & \textbf{Type} & \textbf{Search Range} \\
+\hline
+\multicolumn{3}{l}{\textit{Architecture Parameters}} \\
+F1 (Temporal filters) & Categorical & \{32, 64, 96, 128\} \\
+F2 (Pointwise filters) & Categorical & \{16, 32, 64, 96\} \\
+D (Depth multiplier) & Integer & [1, 4] \\
+\hline
+\multicolumn{3}{l}{\textit{Regularization Parameters}} \\
+Dropout rate & Float & [0.3, 0.7] \\
+Label smoothing & Float & [0.0, 0.2] \\
+\hline
+\multicolumn{3}{l}{\textit{Optimizer Parameters}} \\
+Learning rate & Log-uniform & [$1 \times 10^{-5}$, $1 \times 10^{-2}$] \\
+Weight decay & Log-uniform & [$1 \times 10^{-6}$, $1 \times 10^{-3}$] \\
+\hline
+\multicolumn{3}{l}{\textit{Training Parameters}} \\
+Batch size & Categorical & \{16, 32, 64\} \\
+\hline
+\end{tabular}
+\end{table}
+
+The search space was deliberately constructed to investigate optimization dynamics (learning rate, weight decay), regularization strength (dropout, label smoothing), and architectural complexity ($F1$, $F2$, $D$).  While continuous parameters used log-uniform sampling for learning rates and weight decay to effectively explore numerous orders of magnitude, categorical parameters used discrete selections based on standard procedures in EEG research.
+
+\subsection{Training Configuration}
+
+Each Optuna trial trained an EEGNet model for a maximum of 100 epochs using the following configuration:
+
+\textbf{Optimizer:} AdamW (Adam with decoupled weight decay) was selected for its superior performance in deep learning tasks with L2 regularization. The optimizer computed adaptive learning rates for each parameter while applying weight decay directly to parameter updates, avoiding the interaction between L2 penalty and adaptive learning rates present in standard Adam.
+
+\textbf{Loss Function:} Cross-entropy loss with optional label smoothing was employed for three-class classification. Label smoothing regularization prevented overconfident predictions by softening the hard target labels, converting one-hot encoded targets $[0, 1, 0]$ into smoothed distributions such as $[0.01, 0.98, 0.01]$, where the smoothing factor $\epsilon$ was optimized within the range $[0.0, 0.2]$.
+
+\textbf{Learning Rate Schedule:} A cosine annealing learning rate scheduler was implemented to gradually reduce the learning rate from the initial value to zero following a cosine curve over the training epochs. This schedule encouraged convergence to flatter minima, potentially improving generalization performance.
+
+\textbf{Early Stopping:} Training incorporated early stopping with patience of 15 epochs, monitoring validation accuracy. If validation performance did not improve for 15 consecutive epochs, training terminated early to prevent overfitting and reduce computational cost. The model checkpoint with the highest validation accuracy was retained as the final model for each trial.
+
+\textbf{Batch Processing:} Training data was processed in mini-batches using PyTorch DataLoader with the batch size determined by Optuna optimization. Pin memory and multiple workers were enabled to optimize GPU data transfer efficiency, crucial for the limited 4 GB VRAM constraint.
+
+\subsection{Model Selection and Evaluation}
+
+After completing 50 Optuna trials, the configuration achieving the highest validation accuracy was selected as the final model. The best trial yielded the following optimized hyperparameters:
+
+\begin{itemize}
+    \item Architecture: $F1=64$, $F2=32$, $D=2$
+    \item Regularization: Dropout $= 0.516$, Label smoothing $= 0.031$
+    \item Optimizer: Learning rate $= 1.82 \times 10^{-4}$, Weight decay $= 2.15 \times 10^{-5}$
+    \item Training: Batch size $= 32$
+\end{itemize}
+
+This configuration resulted in a total of 14,051 trainable parameters with a model size of 55 KB, demonstrating the compact nature of the optimized architecture.
+
+\subsection{Performance Metrics}
+
+Model performance was evaluated using multiple complementary metrics:
+
+\textbf{Overall Accuracy:} The primary metric computed as the percentage of correctly classified trials across all three classes on the validation set.
+
+\textbf{Per-Class Accuracy:} Individual accuracy calculated for each motor imagery class (Left, Right, Feet) to identify class-specific performance variations and potential biases.
+
+\textbf{Confusion Matrix:} A $3 \times 3$ confusion matrix visualized the distribution of predictions across true labels, revealing patterns of misclassification between similar motor imagery tasks (e.g., left vs. right hand).
+
+\textbf{Training Curves:} Training and validation accuracy curves across epochs were plotted to assess convergence behavior, identify overfitting, and validate the effectiveness of regularization strategies.
+
+\textbf{Overfitting Gap:} The difference between final training accuracy and best validation accuracy quantified the degree of overfitting, with smaller gaps indicating better generalization.
+
+All experiments were conducted with fixed random seeds to ensure reproducibility of results. The complete training process, including 50 Optuna trials, required approximately 6-8 hours of computation time on the RTX 3050 Ti GPU.

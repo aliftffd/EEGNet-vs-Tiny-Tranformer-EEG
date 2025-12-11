@@ -1,0 +1,35 @@
+\subsection{Conclusion}
+
+This study successfully demonstrated the feasibility of three-class motor imagery classification using a compact EEGNet architecture optimized through automated hyperparameter tuning. By combining the BCI Competition IV Dataset 2a benchmark data with custom-collected OpenBCI recordings, we achieved a validation accuracy of 57.30\% on left hand, right hand, and feet motor imagery classification using only three central electrodes (C3, Cz, C4).
+
+The key contributions of this work include:
+
+First, we validated the effectiveness of cross-platform dataset integration for motor imagery BCIs. The combination of research-grade BCI Competition data (1,944 trials from 9 subjects) with consumer-grade OpenBCI recordings (351 trials from 3 subjects) demonstrated that models can generalize across different recording hardware when appropriate preprocessing strategies are employed. The per-channel-per-trial normalization approach proved critical, contributing a +23.88\% accuracy improvement over global normalization and enabling the model to learn neural patterns rather than hardware-specific artifacts.
+
+Second, we demonstrated the value of systematic hyperparameter optimization for motor imagery classification. The Optuna framework explored 50 different configurations across architecture parameters (F1, F2, D), regularization strategies (dropout, label smoothing), and optimizer settings (learning rate, weight decay), identifying an optimal compact architecture with only 14,051 parameters and 55 KB model size. This automated approach eliminated the need for manual tuning and extensive domain expertise, making high-performance BCI development more accessible.
+
+Third, we achieved practical classification performance using minimal electrode configuration. The 57.30\% validation accuracy substantially exceeds the 33.33\% random chance level and meets the practical threshold for motor imagery BCI applications, while using only three electrodes compared to the 22-64 electrodes typically employed in state-of-the-art systems. This minimal configuration reduces hardware complexity, setup time, and user discomfort, making the system more practical for real-world deployment.
+
+The confusion matrix analysis revealed important insights into motor imagery neural patterns. Right hand motor imagery achieved the highest per-class accuracy (64.05\%), followed by feet (55.56\%) and left hand (49.67\%). The asymmetric misclassification patterns between left and right hand (15.03\% confusion rate) highlight the inherent difficulty of bilateral hand discrimination with limited spatial resolution, while the better hand-feet discrimination (28.54\% confusion rate) aligns with known somatotopic organization in the motor cortex.
+
+The computational efficiency of the final model—55 KB size, 14,051 parameters, and 6-8 hour training time on consumer-grade GPU—demonstrates that effective motor imagery BCI research does not require expensive computational infrastructure. This accessibility lowers barriers to entry for BCI development and enables deployment on edge devices such as NVIDIA Jetson Nano, Raspberry Pi, or embedded microcontrollers.
+
+\subsection{Future Work}
+
+Several promising directions could further improve the system performance and practical applicability:
+
+\textbf{Dataset Augmentation:} Collecting additional OpenBCI data to balance the dataset composition (currently 84.7\% BCI Competition vs. 15.3\% OpenBCI) could improve cross-platform generalization. Expanding to 5-10 OpenBCI subjects with 200-300 trials each would create a more balanced training set and potentially reduce hardware-specific biases.
+
+\textbf{Subject-Specific Adaptation:} Implementing transfer learning or meta-learning approaches could address inter-subject variability in motor imagery patterns. Pre-training on the combined dataset followed by fine-tuning on subject-specific data (calibration sessions) might improve individual user performance while maintaining generalization capabilities.
+
+\textbf{Expanded Electrode Configuration:} While the three-electrode setup demonstrates feasibility, expanding to 5-7 optimally selected electrodes (e.g., adding FC3, FC4, CP3, CP4) could improve spatial resolution and discrimination between left and right hand motor imagery, potentially achieving 65-70\% accuracy while maintaining practical wearability.
+
+\textbf{Advanced Architectures:} Exploring attention mechanisms, transformer architectures, or hybrid CNN-RNN models could capture longer-range temporal dependencies and adaptive spatial weighting. Recent advances in neural architecture search (NAS) could automatically discover domain-specific architectures optimized for motor imagery classification.
+
+\textbf{Real-Time Implementation:} Deploying the optimized model on embedded platforms (NVIDIA Jetson Nano, Raspberry Pi 4) with real-time OpenBCI data streaming would validate practical feasibility for assistive technology applications such as wheelchair control, prosthetic limb control, or communication devices for locked-in syndrome patients.
+
+\textbf{Multi-Task Learning:} Extending the system to simultaneously classify motor imagery type and decode movement parameters (e.g., force, speed, direction) could enable more sophisticated BCI control interfaces. Joint optimization across multiple related tasks might improve feature learning and overall system performance.
+
+\textbf{Explainability Analysis:} Applying interpretability techniques such as gradient-weighted class activation mapping (Grad-CAM), attention visualization, or saliency maps could provide neuroscientific insights into which temporal and spatial patterns the model uses for classification, potentially informing better electrode placement strategies or preprocessing approaches.
+
+In conclusion, this study demonstrates that combining automated machine learning techniques with cross-platform dataset integration enables development of compact, efficient, and practical motor imagery BCIs. The 57.30\% three-class accuracy using minimal hardware represents a significant step toward accessible, deployable brain-computer interfaces for assistive technology and rehabilitation applications. Future work addressing the identified limitations could push performance toward 65-75\% accuracy while maintaining the system's computational efficiency and practical deployability.
