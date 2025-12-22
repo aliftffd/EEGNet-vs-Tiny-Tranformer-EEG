@@ -1,0 +1,90 @@
+\documentclass[preprint,12pt]{elsarticle}
+
+%% Use the option review to obtain double line spacing
+%% \documentclass[preprint,review,12pt]{elsarticle}
+
+%% Use the options 1p,twocolumn; 3p; 3p,twocolumn; 5p; or 5p,twocolumn
+%% for a journal layout:
+%% \documentclass[final,1p,times]{elsarticle}
+%% \documentclass[final,1p,times,twocolumn]{elsarticle}
+%% \documentclass[final,3p,times]{elsarticle}
+%% \documentclass[final,3p,times,twocolumn]{elsarticle}
+%% \documentclass[final,5p,times]{elsarticle}
+%% \documentclass[final,5p,times,twocolumn]{elsarticle}
+
+%% Packages
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{subcaption}
+\usepackage{tabularx}
+\usepackage{lineno}
+\usepackage{hyperref}
+\usepackage[margin=2.5cm]{geometry}
+\setcounter{tocdepth}{3}
+
+%% Journal name (change as needed)
+\journal{Journal Name}
+
+\begin{document}
+
+\begin{frontmatter}
+
+%% Title
+\title{Comparative Analysis of EEGNet and End-to-End ShallowConvNet for EEG Motor Imagery Classification}
+
+%% Authors - customize as needed
+%% \author[label1]{Author Name\corref{cor1}}
+%% \ead{email@example.com}
+%% \cortext[cor1]{Corresponding author}
+%% \address[label1]{Institution, Address}
+\author[ugm]{Muhammad Alif Fadhilah\corref{cor1}}
+%%\author[ugm]{pop\corref{cor1}}
+%%\ead{24/552180/PTK/16441}
+\ead{muhammadaliffadhilah@mail.ugm.ac.id}
+\fntext[nim1]{24/552180/PTK/16441}
+\cortext[cor1]{Corresponding author}
+
+\address[ugm]{NIM: 24/552180/PTK/16441 \\ Department of Electrical Engineering, Universitas Gadjah Mada, Yogyakarta, Indonesia}
+
+%%\begin{abstract}
+%% Write your abstract here
+%%Your abstract goes here.
+%%\end{abstract}
+
+%%\begin{keyword}
+%% Keywords separated by \sep
+%%EEG \sep Motor Imagery \sep LSTM \sep ShallowConvNet \sep Brain-Computer Interface \sep Deep Learning
+%%\end{keyword}
+
+\end{frontmatter}
+
+%% Start line numbering (optional - comment out if not needed)
+%%\linenumbers
+
+%% Main sections
+\section{Introduction}
+\input{sections/introduction.tex}
+
+\section{Related Works and Research Position}
+\input{sections/relatedworks.tex}
+
+\section{Methodology}
+\input{sections/method.tex}
+
+\section{Experimental Setup}
+\input{sections/experimental_setup.tex}
+
+\section{Result and Discussion}
+\input{sections/result.tex}
+
+\section{Conclusion}
+\input{sections/conclusion.tex}
+
+%% Bibliography
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

@@ -1,0 +1,45 @@
+\subsection{Hardware and Software Environment}
+Experiments were conducted on an NVIDIA GeForce RTX 3050 Ti GPU (4 GB VRAM) with CUDA acceleration. The software stack comprised PyTorch 2.9.1, MNE-Python for EEG processing, SciPy for filtering, and Optuna for hyperparameter optimization, all in Python 3.12 via Conda.
+
+\subsection{Hyperparameter Optimization}
+Both architectures were optimized using Optuna's Tree-structured Parzen Estimator (TPE) across 50 trials, maximizing validation accuracy while monitoring overfitting via training-validation gaps. Table~\ref{tab:hyperparams_combined} summarizes the search spaces.
+
+\begin{table}[H]
+\centering
+\small
+\caption{Hyperparameter Search Spaces}
+\label{tab:hyperparams_combined}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{|l|l|l|}
+\hline
+\textbf{Parameter} & \textbf{EEGNet} & \textbf{ShallowConvNet} \\
+\hline
+\multicolumn{3}{|l|}{\textit{Architecture}} \\
+\hline
+Filters & F1: \{32,64,96,128\} & \{20, 40, 60\} \\
+& F2: \{16,32,64,96\} & \\
+Depth/Length & D: [1--4] & Temporal: [15--40] \\
+Pooling & -- & Kernel: [50--100], Stride: [10--30] \\
+\hline
+\multicolumn{3}{|l|}{\textit{Regularization \& Training}} \\
+\hline
+Dropout & [0.3--0.7] & [0.3--0.7] \\
+Label smoothing & [0.0--0.2] & -- \\
+Learning rate & [$10^{-5}$--$10^{-2}$] log & [$10^{-5}$--$10^{-2}$] log \\
+Weight decay & [$10^{-6}$--$10^{-3}$] log & [$10^{-4}$--$10^{-1}$] log \\
+Batch size & \{16, 32, 64\} & \{16, 32, 64\} \\
+\hline
+\end{tabular}
+\end{table}
+
+\subsection{Training Configuration}
+Both models used AdamW optimizer with decoupled weight decay, cross-entropy loss, early stopping (patience=15), and mini-batch processing.
+
+\textbf{EEGNet} (14,051 params): $F1$=64, $F2$=32, $D$=2; dropout=0.516, label smoothing=0.031; LR=$1.82\times10^{-4}$, weight decay=$2.15\times10^{-5}$; batch size=32 with cosine annealing scheduler.
+
+\textbf{ShallowConvNet} (6,003 params): temporal filter length=37, filters=60; pooling kernel/stride=100/25; dropout=0.6; LR=$3.56\times10^{-4}$, weight decay=$1.24\times10^{-2}$; batch size=32.
+
+Both configurations emphasize regularization to mitigate overfitting, with compact architectures suitable for resource-constrained deployment.
+
+\subsection{Performance Metrics}
+Models were evaluated using: (1) \textbf{Overall accuracy} as the primary metric across all classes; (2) \textbf{Per-class accuracy} for Left, Right, and Feet to identify class-specific biases; (3) \textbf{Confusion matrix} ($3\times3$) revealing misclassification patterns between similar MI tasks; (4) \textbf{Training curves} assessing convergence and regularization effectiveness; and (5) \textbf{Overfitting gap} (training minus validation accuracy) quantifying generalization. All experiments used fixed random seeds for reproducibility, with complete optimization requiring 6--8 hours on the RTX 3050 Ti.

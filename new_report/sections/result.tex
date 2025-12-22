@@ -1,0 +1,93 @@
+\subsection{Overall Classification Performance}
+
+Figure~\ref{fig:training_comparison} illustrates training dynamics for both architectures, revealing distinct convergence and generalization patterns.
+
+\begin{figure}[H]
+    \centering
+    \begin{subfigure}[b]{0.8\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figure/training_history_Shallow.pdf}
+        \caption{ShallowConvNet Training History}
+        \label{fig:shallow_conv}
+    \end{subfigure}
+    \vspace{0.3cm}
+    \begin{subfigure}[b]{0.8\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figure/training_curves.png}
+        \caption{EEGNet Training History}
+        \label{fig:eegnet}
+    \end{subfigure}
+    \caption{Comparative training dynamics: ShallowConvNet exhibits rapid convergence with moderate overfitting, while EEGNet shows extended training with significant validation loss divergence despite superior training accuracy.}
+    \label{fig:training_comparison}
+\end{figure}
+
+\textbf{ShallowConvNet} achieved optimal validation performance (~56.2\%) within 30 epochs, suggesting efficient feature extraction from limited EEG dimensions (3 channels $\times$ 625 timepoints). Training loss decayed from 1.10 to 0.95, while validation loss showed a shallow U-curve (minimum 1.05 at epoch 28, rising to 1.12 by epoch 45)—a 6.7\% increase indicating mild overfitting. Validation accuracy exhibited $\pm$3.5\% volatility throughout training.
+
+\textbf{EEGNet} trained for 135 epochs, achieving higher terminal training accuracy (70.3\% vs. 63.1\%) due to greater parametric capacity (14,051 parameters). However, validation loss diverged markedly after epoch 20, increasing from 1.02 to 1.35—a 32.4\% divergence indicating substantial overfitting. Peak validation accuracy (57.1\% at epoch 42) only marginally exceeded ShallowConvNet. The training-validation gap expanded from 8.2\% (epoch 20) to 13.5\% (epoch 135), demonstrating progressive memorization rather than generalizable learning. A critical inflection at epoch 65 marked transition from feature learning to noise fitting; cosine annealing, dropout ($p$=0.516), and weight decay proved insufficient regularization.
+
+\begin{table}[ht]
+\centering
+\small
+\caption{Performance Comparison Between ShallowConvNet and EEGNet}
+\label{tab:model_comparison}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{lcc}
+\hline
+\textbf{Metric} & \textbf{ShallowConvNet} & \textbf{EEGNet} \\
+\hline
+Peak Validation Accuracy (\%) & 56.2 & 57.1 \\
+Final Training Accuracy (\%) & 63.1 & 70.3 \\
+Training--Validation Gap (\%) & 6.9 & 13.5 \\
+Convergence Epoch & 22 & 58 \\
+Overfitting Onset (Epoch) & 32 & 20 \\
+Parameters & 6,003 & 14,051 \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Architectural Implications:} ShallowConvNet's explicit temporal-spatial separation provides faster convergence and more stable validation, better suited to low channel count and SNR. EEGNet's deeper separable convolutions, while more expressive, show susceptibility to overfitting—2.34$\times$ more parameters yielded only 1.6\% higher peak accuracy. Both architectures plateau below 60\%, highlighting the inherent difficulty of three-class MI classification from limited cortical coverage (C3, Cz, C4). Breaching 60--65\% accuracy may require frequency band decomposition, electrode expansion, or hybrid architectures.
+
+\subsection{Confusion Matrix Analysis}
+
+\begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figure/confusion_matrix_validation.pdf}
+        \caption{ShallowConvNet}
+        \label{fig:conf_matrix_shallow}
+    \end{subfigure}
+    \hfill
+    \begin{subfigure}[b]{0.48\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{figure/confusion_matrix.png}
+        \caption{EEGNet}
+        \label{fig:conf_matrix_eegnet}
+    \end{subfigure}
+    \caption{ShallowConvNet excels at hand classification (69\% right hand recall) but struggles with feet (46\%). EEGNet shows balanced performance across classes (50--64\% recall).}
+    \label{fig:confusion_matrices}
+\end{figure}
+
+\begin{table}[H]
+\centering
+\small
+\caption{Class-wise Performance Comparison}
+\label{tab:class_metrics}
+\begin{tabular}{lccc|cc}
+\hline
+\textbf{Class} & \multicolumn{2}{c}{\textbf{ShallowConvNet}} & \multicolumn{2}{c}{\textbf{EEGNet}} \\
+& Recall & F1 & Recall & F1 \\
+\hline
+Left Hand & 53.9\% & -- & 50.0\% & 0.53 \\
+Right Hand & 69.0\% & -- & 64.0\% & 0.60 \\
+Both Feet & 46.2\% & -- & 56.0\% & 0.56 \\
+\hline
+\textbf{Overall} & \textbf{56.3\%} & \textbf{55.9\%} & \textbf{56.0\%} & \textbf{56.0\%} \\
+\hline
+\end{tabular}
+\end{table}
+
+ShallowConvNet demonstrates strong hand MI specialization (69\% right-hand recall) but limited foot performance (46\%). EEGNet provides more balanced cross-class performance, substantially improving foot classification (56\% vs. 46\%). Despite these differences, both achieve ~56\% overall accuracy—their distinction lies in class-specific error patterns. Left--right hand confusion remains the dominant misclassification source for both architectures.
+
+\textbf{Implications:} ShallowConvNet's design favors lateralized hand patterns, ideal for binary hand classification. EEGNet's depthwise separable convolutions enable more generalized extraction, crucial for three-class applications. However, neither achieves the >70\% accuracy required for reliable BCI control with the current electrode setup.
+

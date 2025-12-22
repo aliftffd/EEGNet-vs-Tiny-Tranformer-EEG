@@ -1,0 +1,45 @@
+\subsection{Dataset Description}
+
+This study utilized 2,295 motor imagery trials from two sources. The primary dataset comprises 1,944 trials from the BCI Competition IV Dataset 2a~\cite{brunner2008graz,BCI2008GrazDataset}, containing recordings from 9 subjects performing four MI classes (we selected left hand, right hand, and feet). To evaluate cross-hardware generalization, 351 trials were collected using OpenBCI Cyton from three subjects. Both datasets followed consistent protocols with visual cues and ~7-second trials. The final balanced dataset contains 765 trials per class, using three central electrodes (C3, Cz, C4) over the sensorimotor cortex at 250 Hz sampling rate.
+
+\subsection{Data Preprocessing}
+
+\textbf{Temporal Filtering:} A 5th-order Butterworth bandpass filter (8--35 Hz) isolates mu and beta band oscillations associated with motor imagery ERD~\cite{pfurtscheller1999}. Zero-phase filtering via forward-backward filtering eliminates phase distortion~\cite{oppenheim1999}.
+
+\textbf{Channel Selection and Segmentation:} Three channels (C3, Cz, C4) following the 10--20 system~\cite{jasper1958} capture left motor cortex, central, and right motor cortex activity respectively. Trials are epoched 0.5--3.0s post-cue for GDF data (625 samples) and 2.0--6.0s for CSV data (1000 samples).
+
+\textbf{Artifact Rejection:} Trials exceeding 100 $\mu$V peak amplitude are rejected, as typical EEG ranges 10--50 $\mu$V~\cite{luck2014}. Fourier-based resampling ensures 250 Hz consistency across datasets.
+
+\textbf{Normalization:} Z-score standardization ($\hat{x} = (x - \mu)/\sigma$) with statistics computed exclusively from training data prevents leakage~\cite{kaufman2012}. Data is reshaped to $\mathbf{X} \in \mathbb{R}^{N \times 1 \times C \times T}$ for 2D convolution compatibility, enabling data-driven spatio-temporal filtering analogous to FBCSP~\cite{ang2008}.
+
+\subsection{Model Architectures}
+
+\textbf{EEGNet}~\cite{lawhern2018eegnet} is a compact CNN processing three-channel input through temporal convolution, depthwise spatial convolution, separable convolution, and classification blocks. With 14,051 parameters, it efficiently captures spatial patterns while learning frequency-specific MI characteristics. Hyperparameters were optimized via 50 Optuna trials.
+
+\textbf{ShallowConvNet} extracts spatio-temporal features through temporal convolution (learning frequency patterns) followed by spatial convolution across C3/Cz/C4 (similar to CSP). Signal processing applies squaring, pooling, and logarithmic transformation to compute normalized power. With 6,003 parameters, it maintains interpretability through explicit filtering stages.
+
+\begin{table}[ht]
+\small
+\centering
+\caption{Model Architecture Comparison}
+\label{tab:architecture_comparison}
+\renewcommand{\arraystretch}{1.1}
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Component} & \textbf{EEGNet} & \textbf{ShallowConvNet} \\
+\hline
+Input Shape & $3 \times 1000$ & $3 \times 625$ \\
+Temporal Conv & $1 \times 64$, 64 filters & $1 \times 37$, 60 filters \\
+Spatial Conv & Depthwise $3 \times 1$ & Standard $3 \times 1$ \\
+Nonlinearity & ELU & Square + Log \\
+Pooling & AvgPool $1\times4$, $1\times8$ & AvgPool $1\times100$ \\
+Dropout & $p=0.516$ & $p=0.6$ \\
+FC Output & $992 \rightarrow 3$ & $1200 \rightarrow 3$ \\
+\hline
+\textbf{Total Params} & \textbf{14,051} & \textbf{6,003} \\
+\hline
+\end{tabular}
+\end{table}
+
+
+
